@@ -10,8 +10,20 @@ from src.exception import CustomException
 from src.logger import logging
 
 def save_object(file_path, obj):
-    # ... (this function is unchanged)
-    pass
+    try:
+        dir_path = os.path.dirname(file_path)
+        os.makedirs(dir_path, exist_ok=True)
+        with open(file_path, "wb") as file_obj:
+            dill.dump(obj, file_obj)
+    except Exception as e:
+        raise CustomException(e, sys)
+
+def load_object(file_path):
+    try:
+        with open(file_path, "rb") as file_obj:
+            return dill.load(file_obj)
+    except Exception as e:
+        raise CustomException(e, sys)
 
 def evaluate_models(X_train, y_train, X_test, y_test, models, param):
     try:
@@ -19,11 +31,8 @@ def evaluate_models(X_train, y_train, X_test, y_test, models, param):
         for model_name, model in models.items():
             para = param.get(model_name, {})
 
-            # --- START: FIX 3 (Optional, if memory error persists) ---
-            # Change n_jobs from -1 to 1 to stop parallel processing.
-            # This will be slower but use much less RAM.
+        
             gs = GridSearchCV(model, para, cv=3, verbose=2, n_jobs=1) 
-            # --- END: FIX 3 ---
 
             gs.fit(X_train, y_train)
 
